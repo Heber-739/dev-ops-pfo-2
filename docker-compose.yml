@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mi-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: demo
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3307:3306"
+    networks:
+      - mi-red
+
+  backend:
+    build: ./backend
+    container_name: app-backend
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: 1234
+      DB_NAME: demo
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    networks:
+      - mi-red
+
+  frontend:
+    build: ./frontend
+    container_name: app-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - mi-red
+
+volumes:
+  db_data:
+
+networks:
+  mi-red:
+    driver: bridge
